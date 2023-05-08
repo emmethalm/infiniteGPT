@@ -1,9 +1,12 @@
 import openai
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 # Add your own OpenAI API key
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-openai.api_key = "sk-XXXXXXXXXXXXXXXXXXXXX"
+if not openai.api_key:
+    raise ValueError("The OPENAI_API_KEY environment variable is not set.")
 
 def load_text(file_path):
     with open(file_path, 'r') as file:
@@ -14,21 +17,23 @@ def save_to_file(responses, output_file):
         for response in responses:
             file.write(response + '\n')
 
-# Change your OpenAI chat model accordingly
-
 def call_openai_api(chunk):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "PASS IN ANY ARBITRARY SYSTEM VALUE TO GIVE THE AI AN IDENITY"},
-            {"role": "user", "content": f"OPTIONAL PREPROMPTING FOLLOWING BY YOUR DATA TO PASS IN: {chunk}."},
-        ],
-        max_tokens=1750,
-        n=1,
-        stop=None,
-        temperature=0.5,
-    )
-    return response.choices[0]['message']['content'].strip()
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": f"Please summarize the following: {chunk}."},
+            ],
+            max_tokens=1750,
+            n=1,
+            stop=None,
+            temperature=0.5,
+        )
+        return response.choices[0]['message']['content'].strip()
+    except Exception as e:
+        print(f"Error processing chunk: {e}")
+        return ""
 
 def split_into_chunks(text, tokens=1500):
     words = text.split()
@@ -46,10 +51,8 @@ def process_chunks(input_file, output_file):
     save_to_file(responses, output_file)
 
 # Specify your input and output files
-
 if __name__ == "__main__":
     input_file = "your_input_here.txt"
     output_file = "your_output_here.txt"
     process_chunks(input_file, output_file)
 
-# Can take up to a few minutes to run depending on the size of your data input

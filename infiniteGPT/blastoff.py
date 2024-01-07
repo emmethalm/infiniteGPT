@@ -18,7 +18,7 @@ def save_to_file(responses, output_file):
 # Change your OpenAI chat model accordingly
 
 def call_openai_api(chunk):
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "PASS IN ANY ARBITRARY SYSTEM VALUE TO GIVE THE AI AN IDENITY"},
